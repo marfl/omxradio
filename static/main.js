@@ -24,11 +24,13 @@ var stopBtn  = document.getElementById('stopBtn');
 var customPath = document.getElementById('customPath');
 var customUrlForm  = document.getElementById('customUrlForm');
 
-var searchForm    = document.getElementById('searchForm');
+var listQ = document.getElementById('listQ');
+var searchForm = document.getElementById('searchForm');
+var searchList = document.getElementById('searchList');
 var searchInput  = document.getElementById('searchInput');
 var queueBtn = document.getElementById('queueBtn');
 var playBtn = document.getElementById('playBtn');
-
+var playList =  document.getElementById('playList');
 var backwardBtn  = document.getElementById('backwardBtn');
 var forwardBtn   = document.getElementById('forwardBtn');
 var playPauseBtn = document.getElementById('playPauseBtn');
@@ -43,6 +45,7 @@ bindButton(playPauseBtn, '/omx/playpause');
 var isActive = true;
 var queue = [];
 
+
 function setActive(active) {
 	isActive = active;
 	stations.disabled = !active;
@@ -51,7 +54,7 @@ function setActive(active) {
 
 	queueBtn.disabled = !active;
 	playBtn.disabled = !active;
-
+	playList.disabled = !active;
 	stopBtn.disabled = !active;
 	backwardBtn.disabled = !active;
 	forwardBtn.disabled = !active;
@@ -88,6 +91,34 @@ stationsForm.addEventListener('submit', function (e) {
 	}
 }, false);
 
+listQ.addEventListener ('submit', function (e){
+        e.preventDefault();
+        var w = searchList.value;
+        
+    var query = searchList.value;
+    var vars = query.split('&');
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split('=');
+	if (vars[i].indexOf("list") != -1) {
+            //return decodeURIComponent(pair[1]);
+	var wer = decodeURIComponent(pair[1]);	
+		if (wer.length > 0 && isActive) {
+                	setActive(false);
+                	xhr('/list?q='+encodeURIComponent(wer), function (html) { 
+                        	setActive(true);
+                                	});
+        		}
+        
+		}
+    	}
+
+/*	if (w.length > 0 && isActive) {
+                setActive(false);
+                xhr('/list?q='+encodeURIComponent(w), function (html) {
+                        setActive(true);
+                                });     
+        }*/       
+}, false); 
 searchForm.addEventListener('submit', function (e) {
 	e.preventDefault();
 	var q = searchInput.value;
