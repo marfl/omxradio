@@ -48,6 +48,7 @@ omx.onstop = function (wasKilled, stdout) {
 	}
 };
 
+
 function QueueItem(params) {
 	this.url = params.url;
 	this.site = params.site || params.url;
@@ -193,7 +194,7 @@ var httpServer = http.createServer(function (req, res) {
 	
 	var pathname = decodeURI(uri.pathname.replace(/\/\//g, "/"));
 	var pathlist = pathname.substr(1).split("/");
-
+console.log(pathlist);
 	var specialCommand = true;
 	
 	switch (pathlist[0]) {
@@ -287,32 +288,96 @@ var httpServer = http.createServer(function (req, res) {
 			}
 			break;
 
-		
+		case 'list':
+                        console.log("List search:", uri.query.q);
+                        var isQueue = uri.query.queue !== undefined;
+                        if (!isQueue) {
+                                isChangingSong = true;
+                        }
+		youtube.feeds.playlist(uri.query.q, function (result) {
+                                if (result.items && result.items[0])  {
+                                        var video = result.items[0];
+         				var number = result.itemsPerPage;
+					console.log("Number:", number);
+					console.log("Video:", video);
+                                        var title = video.video.title;
+					for (var i=0; i < number; i++) {
+						var video1 = result.items[i];
+						var pageUrl1 = video1.video.player.default;
+						var title1 = video1.video.title;
+                				addToQueue({site: pageUrl1, title: title1, yt: true});
+                                                res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+
+                                                res.end();
+
+        }
+
+                                        var pageUrl = video.video.player.default;
+                                        console.log("Found:", title);
+                                        if (isQueue) {
+                                                addToQueue({site: pageUrl, title: title, yt: true});
+                                                res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+
+                                                res.end();
+
+
+
+                                        } else{
+                                                getYoutubeUrl(pageUrl, function (realUrl) {
+                                                        omx.start(realUrl, function () {
+                                                                setNowPlaying('<a href="'+pageUrl+'" target="_blank">'+title+'</a>');
+                                                                res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+                                                                res.end();
+                                                        isChangingSong = false;
+                                                        });
+                                                });
+
+                                        }
+                                } else { // No result
+                                        if (isQueue) {
+                                                addToQueue({url: uri.query.q});
+                                                res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+                                                res.end();
+                                        } else {
+                                                omx.start(uri.query.q, function () {
+                                                        setNowPlaying('<a href="'+uri.query.q+'" target="_blank">'+uri.query.q+'</a>');
+                                                        res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+                                                        res.end();
+                                                isChangingSong = false;
+                                                });
+                                        }
+
+                                }
+                        });
+break;
 		case 'search':
 			console.log("Youtube search:", uri.query.q);
 			var isQueue = uri.query.queue !== undefined;
 			if (!isQueue) {
 				isChangingSong = true;
 			}
-			youtube.feeds.videos( {q: uri.query.q}, function (result) {
+			youtube.feeds.videos( {q: uri.query.q}, function (result) {console.log
 				if (result.items && result.items[0]) {
 					var video = result.items[0];
 
 					var title = video.title;
 					var pageUrl = video.player.default;
 					console.log("Found:", title);
-
 					if (isQueue) {
 						addToQueue({site: pageUrl, title: title, yt: true});
 						res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+
 						res.end();
-					} else {
+
+
+
+					} else{
 						getYoutubeUrl(pageUrl, function (realUrl) {
 							omx.start(realUrl, function () {
 								setNowPlaying('<a href="'+pageUrl+'" target="_blank">'+title+'</a>');
 								res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
 								res.end();
-								isChangingSong = false;
+							isChangingSong = false;
 							});
 						});
 						
@@ -327,12 +392,11 @@ var httpServer = http.createServer(function (req, res) {
 							setNowPlaying('<a href="'+uri.query.q+'" target="_blank">'+uri.query.q+'</a>');
 							res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
 							res.end();
-							isChangingSong = false;
+						isChangingSong = false;
 						});
 					}
 					
 				}
-
 			});
 			break;
 
