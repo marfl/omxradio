@@ -250,6 +250,12 @@ console.log(pathlist);
 					res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
 					res.end();
 					break;
+				case 'set_audio_out':
+					console.log('set_audio_out='+uri.query.value);
+					omx.setAudioOut(uri.query.value);
+					res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+					res.end();
+					break;
 
 				default:
 					notFound(res);

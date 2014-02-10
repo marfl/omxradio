@@ -26,7 +26,13 @@ select {
 	height: 50px;
 	font-size: 24px;
 	text-align: center;
+	padding-top: 6px;
 	display: block;
+}
+select.small {
+	height: 60px;
+	font-size: 16px;
+	padding-top: 16px;
 }
 button {
 	width: 310px;

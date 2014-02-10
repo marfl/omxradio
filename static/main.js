@@ -35,7 +35,7 @@ var backwardBtn  = document.getElementById('backwardBtn');
 var forwardBtn   = document.getElementById('forwardBtn');
 var playPauseBtn = document.getElementById('playPauseBtn');
 
-var toggleOutBtn = document.getElementById('toggleOutBtn');
+var audioOut = document.getElementById('audioOut');
 var volumeUpBtn  = document.getElementById('volumeUpBtn');
 var volumeDownBtn  = document.getElementById('volumeDownBtn');
 
@@ -67,7 +67,7 @@ function setActive(active) {
 	forwardBtn.disabled = !active;
 	playPauseBtn.disabled = !active;
 
-	toggleOutBtn.disabled = !active;
+	audioOut.disabled = !active;
 	volumeUpBtn.disabled = !active;
 	volumeDownBtn.disabled = !active;
 
@@ -180,6 +180,17 @@ playQueueBtn.addEventListener('click', function () {
 	}
 }, false);
 
+audioOut.addEventListener('change', function (e) {
+	e.preventDefault();
+
+	if (isActive) {
+
+		setActive(false);
+		xhr('/omx/set_audio_out?value='+encodeURIComponent(audioOut.value), function () {
+			setActive(true);
+		});
+	}
+}, false);
 
 /*function longPolling() {
 	var x = xhr('/nowplaying?current='+encodeURIComponent(nowPlaying), function (res) {
@@ -236,8 +247,6 @@ function QueueItem(params, table) {
 }
 
 function handleEvents(data) {
-
-	
 
 	if (data.nowPlaying !== undefined) {
 		setNowPlaying(data.nowPlaying);
