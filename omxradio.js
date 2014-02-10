@@ -238,6 +238,18 @@ console.log(pathlist);
 					res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
 					res.end();
 					break;
+				case 'volume_up':
+					console.log('volume_up');
+					omx.volume_up();
+					res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+					res.end();
+					break;
+				case 'volume_down':
+					console.log('volume_down');
+					omx.volume_down();
+					res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+					res.end();
+					break;
 
 				default:
 					notFound(res);

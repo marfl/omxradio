@@ -35,12 +35,19 @@ var backwardBtn  = document.getElementById('backwardBtn');
 var forwardBtn   = document.getElementById('forwardBtn');
 var playPauseBtn = document.getElementById('playPauseBtn');
 
+var toggleOutBtn = document.getElementById('toggleOutBtn');
+var volumeUpBtn  = document.getElementById('volumeUpBtn');
+var volumeDownBtn  = document.getElementById('volumeDownBtn');
+
 var playQueueBtn = document.getElementById('playQueueBtn');
 var queueDiv = document.getElementById('queueDiv');
 
 bindButton(backwardBtn, '/omx/backward');
 bindButton(forwardBtn, '/omx/forward');
 bindButton(playPauseBtn, '/omx/playpause');
+
+bindButton(volumeUpBtn, '/omx/volume_up');
+bindButton(volumeDownBtn, '/omx/volume_down');
 
 var isActive = true;
 var queue = [];
@@ -59,6 +66,10 @@ function setActive(active) {
 	backwardBtn.disabled = !active;
 	forwardBtn.disabled = !active;
 	playPauseBtn.disabled = !active;
+
+	toggleOutBtn.disabled = !active;
+	volumeUpBtn.disabled = !active;
+	volumeDownBtn.disabled = !active;
 
 	playQueueBtn.disabled = !active;
 }
