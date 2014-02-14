@@ -15,10 +15,10 @@ function xhr(uri, cb) {
 var nowPlaying = "";
 var nowPlayingOutput = document.getElementById('nowPlaying');
 
-var stations = document.getElementById('stations');
-var stationsForm = document.getElementById('stationsForm');
-var queueStationBtn = document.getElementById('queueStationBtn');
-var playStationBtn = document.getElementById('playStationBtn');
+//var stations = document.getElementById('stations');
+//var stationsForm = document.getElementById('stationsForm');
+//var queueStationBtn = document.getElementById('queueStationBtn');
+//var playStationBtn = document.getElementById('playStationBtn');
 var stopBtn  = document.getElementById('stopBtn');
 
 var customPath = document.getElementById('customPath');
@@ -55,9 +55,9 @@ var queue = [];
 
 function setActive(active) {
 	isActive = active;
-	stations.disabled = !active;
-	queueStationBtn.disabled = !active;
-	playStationBtn.disabled = !active;
+	//stations.disabled = !active;
+	//queueStationBtn.disabled = !active;
+	//playStationBtn.disabled = !active;
 
 	queueBtn.disabled = !active;
 	playBtn.disabled = !active;
@@ -87,6 +87,7 @@ function setNowPlaying(np) {
 	console.log("Now playing:", np);
 }
 
+/*
 stationsForm.addEventListener('submit', function (e) {
 	e.preventDefault();
 	if (stations.selectedIndex > 0 && isActive) {
@@ -101,6 +102,7 @@ stationsForm.addEventListener('submit', function (e) {
 		});
 	}
 }, false);
+*/
 
 listQ.addEventListener ('submit', function (e){
         e.preventDefault();
@@ -141,6 +143,7 @@ searchForm.addEventListener('submit', function (e) {
 	}
 }, false);
 
+/*
 queueStationBtn.addEventListener('click', function () {
 	var url = stations.value;
 	var title = stations.options[stations.selectedIndex].textContent;
@@ -151,6 +154,7 @@ queueStationBtn.addEventListener('click', function () {
 		});
 	}
 });
+*/
 
 queueBtn.addEventListener('click', function () {
 	var q = searchInput.value;
