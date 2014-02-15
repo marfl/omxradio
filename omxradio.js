@@ -321,6 +321,7 @@ console.log(pathlist);
                                         var title = video.video.title;
 					for (var i=0; i < number; i++) {
 						var video1 = result.items[i];
+                                                if(!video1 || !video1.video.player) continue;
 						var pageUrl1 = video1.video.player.default;
 						var title1 = video1.video.title;
                 				addToQueue({site: pageUrl1, title: title1, yt: true});
