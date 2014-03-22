@@ -199,6 +199,19 @@ console.log(pathlist);
 	
 	switch (pathlist[0]) {
 
+                case 'xbmc':
+                        
+                        console.log("xbmc");
+                        res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+                        res.write("Starting XBMC...");
+                        res.end();
+
+                        var exec = require('child_process').exec;
+                        exec("sudo -n -u xbmc /usr/bin/xbmc-standalone",  function(error, stdout, stderr) {
+                                                    console.log(stdout); });
+
+                        break;
+
 		case 'omx':
 
 			switch (pathlist[1]) {
