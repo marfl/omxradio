@@ -105,33 +105,34 @@ stationsForm.addEventListener('submit', function (e) {
 */
 
 listQ.addEventListener ('submit', function (e){
-        e.preventDefault();
-        var w = searchList.value;
-        
+    
+    e.preventDefault();
     var query = searchList.value;
-    var vars = query.split('&');
-    for (var i = 0; i < vars.length; i++) {
-        var pair = vars[i].split('=');
-	if (vars[i].indexOf("list") != -1) {
-            //return decodeURIComponent(pair[1]);
-	var wer = decodeURIComponent(pair[1]);	
-		if (wer.length > 0 && isActive) {
-                	setActive(false);
-                	xhr('/list?q='+encodeURIComponent(wer), function (html) { 
-                        	setActive(true);
-                                	});
-        		}
-        
-		}
-    	}
 
-/*	if (w.length > 0 && isActive) {
-                setActive(false);
-                xhr('/list?q='+encodeURIComponent(w), function (html) {
+    if((query.indexOf("https://") == 0) || (query.indexOf("http://") == 0)) {
+    
+        var vars = query.split('&');
+
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split('=');
+            if (vars[i].indexOf("list") != -1) {
+            var wer = decodeURIComponent(pair[1]);	
+                if (wer.length > 0 && isActive) {
+                    setActive(false);
+                    xhr('/list?q='+encodeURIComponent(wer), function (html) {
                         setActive(true);
-                                });     
-        }*/       
-}, false); 
+                    });
+                }
+            }
+        }
+    } else {
+        setActive(false);
+        xhr('/listsearch?q='+query, function (html) {
+            setActive(true);
+        });
+    }
+}, false);
+
 searchForm.addEventListener('submit', function (e) {
 	e.preventDefault();
 	var q = searchInput.value;
