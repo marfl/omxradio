@@ -54,7 +54,6 @@ function QueueItem(params) {
   this.site = params.site || params.url;
   this.title = params.title || this.site;
   this.id = params.id || queueItemCounter++;
-  this.yt = !!params.yt;
   this.html = this.toHTML();
 }
 QueueItem.prototype.toHTML = function () {
@@ -65,28 +64,13 @@ function playFromQueue(cb) {
   if (queue.length > 0) {
     var item = removeFromQueue(0);
     isChangingSong = true;
-    if (item.yt) {
-      console.log('getting youtube link..');
-      getYoutubeUrl(item.site, function (realUrl) {
-        console.log('playing '+item.title);
-        omx.stop(function () {
-          omx.start(realUrl, function () {
 
-            setNowPlaying(item.toHTML());
-            if (cb) cb();
-            isChangingSong = false;
-
-          });
-        });
-      });
-    } else {
-      console.log('playing '+item.title);
-      omx.start(item.url, function () {
-        setNowPlaying(item.toHTML());
-        if (cb) cb();
-        isChangingSong = false;
-      });
-    }
+    console.log('playing '+item.title);
+    omx.start(item.url, function () {
+      setNowPlaying(item.toHTML());
+      if (cb) cb();
+      isChangingSong = false;
+    });
 
   } else {
     if (cb) cb();
@@ -96,7 +80,7 @@ function playFromQueue(cb) {
 function addToQueue(params) {
 
   var item = new QueueItem(params);
-  console.log("Added "+item.title+" to the queue.");
+  console.log("Adding "+item.title+" to the queue.");
   queue.push(item);
   var data = JSON.stringify({
     queue: {
@@ -105,6 +89,9 @@ function addToQueue(params) {
   });
   for (var i=0; i < sseReq.length; i++) {
     sendToSSE(i, data);
+  }
+  if (queue.length == 1 && nowPlaying == '') {
+    playFromQueue();
   }
 }
 
@@ -315,143 +302,96 @@ var httpServer = http.createServer(function (req, res) {
       }
       break;
 
-    case 'list':
-      console.log("List search:", uri.query.q);
-      var isQueue = uri.query.queue !== undefined;
-      if (!isQueue) {
-        isChangingSong = true;
-      }
-      youtube.feeds.playlist(uri.query.q, function (result) {
-        if (result.items && result.items[0])  {
-          var video = result.items[0];
-          var number = result.itemsPerPage;
-          console.log("Number:", number);
-          console.log("Video:", video);
-          var title = video.video.title;
-          for (var i=0; i < number; i++) {
-            var video1 = result.items[i];
-            if(!video1 || !video1.video.player) continue;
-            var pageUrl1 = video1.video.player.default;
-            var title1 = video1.video.title;
-            addToQueue({site: pageUrl1, title: title1, yt: true});
-            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-
-            res.end();
-          }
-
-          var pageUrl = video.video.player.default;
-          console.log("Found:", title);
-          if (isQueue) {
-            addToQueue({site: pageUrl, title: title, yt: true});
-            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-
-            res.end();
-
-
-
-          } else{
-            getYoutubeUrl(pageUrl, function (realUrl) {
-              omx.start(realUrl, function () {
-                setNowPlaying('<a href="'+pageUrl+'" target="_blank">'+title+'</a>');
-                res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-                res.end();
-                isChangingSong = false;
-              });
-            });
-
-          }
-        } else { // No result
-          if (isQueue) {
-            addToQueue({url: uri.query.q});
-            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-            res.end();
-          } else {
-            omx.start(uri.query.q, function () {
-              setNowPlaying('<a href="'+uri.query.q+'" target="_blank">'+uri.query.q+'</a>');
-              res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-              res.end();
-              isChangingSong = false;
-            });
-          }
-
-        }
-      });
-      break;
-
     case 'listsearch':
-      console.log("Youtube Playlist search:", uri.query.q);
 
-      var isQueue = uri.query.queue !== undefined;
-      if (!isQueue) {
+      if((uri.query.q.indexOf("https://") == 0) ||
+         (uri.query.q.indexOf("http://") == 0)) {
+
+        console.log("List search:", uri.query.q);
         isChangingSong = true;
-      }
-      youtube.feeds.videos( {q: uri.query.q}, function (result) {
+        
+        youtube.feeds.playlist(uri.query.q, function (result) {
+          if (result.items && result.items[0])  {
+            var video = result.items[0];
+            var number = result.itemsPerPage;
+            console.log("Number:", number);
+            console.log("Video:", video);
+            var title = video.video.title;
+            for (var i=0; i < number; i++) {
+              var video1 = result.items[i];
+              if(!video1 || !video1.video.player) continue;
+              var pageUrl1 = video1.video.player.default;
+              var title1 = video1.video.title;
+              addToQueue({site: pageUrl1, title: title1, yt: true});
+              res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
 
-        if (result.items && result.items[0])  {
-          var video = result.items[0];
-          var number = result.itemsPerPage;
-          console.log("Number:", number);
-          console.log("Video:", video);
-          var title = video.title;
+              res.end();
+            }
 
-          for (var i=0; i < number; i++) {
-            var video1 = result.items[i];
-            if(!video1 || !video1.player) continue;
-            var pageUrl1 = video1.player.default;
-            var title1 = video1.title;
-            addToQueue({site: pageUrl1, title: title1, yt: true});
-            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-
-            res.end();
-
-          }
-
-          var pageUrl = video.player.default;
-          console.log("Found:", title);
-          if (isQueue) {
+            var pageUrl = video.video.player.default;
+            console.log("Found:", title);
+              
             addToQueue({site: pageUrl, title: title, yt: true});
             res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
 
             res.end();
 
-
-
-          } else{
-            getYoutubeUrl(pageUrl, function (realUrl) {
-              omx.start(realUrl, function () {
-                setNowPlaying('<a href="'+pageUrl+'" target="_blank">'+title+'</a>');
-                res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-                res.end();
-                isChangingSong = false;
-              });
-            });
-
-          }
-        } else { // No result
-          if (isQueue) {
+          } else { // No result
             addToQueue({url: uri.query.q});
             res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
             res.end();
-          } else {
-            omx.start(uri.query.q, function () {
-              setNowPlaying('<a href="'+uri.query.q+'" target="_blank">'+uri.query.q+'</a>');
-              res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-              res.end();
-              isChangingSong = false;
-            });
           }
+        });
+        break;
+        
+      } else {
 
-        }
-      });
+        console.log("Building youtube playlist from keyword:", uri.query.q);
+
+        isChangingSong = true;
+
+        youtube.feeds.videos( {q: uri.query.q}, function (result) {
+
+          if (result.items && result.items[0])  {
+            var video = result.items[0];
+            var number = result.itemsPerPage;
+            console.log("Number:", number);
+            console.log("Video:", video);
+            var title = video.title;
+
+            for (var i=0; i < Math.min(8,number); i++) {
+              var video1 = result.items[i];
+              if(!video1 || !video1.player) continue;
+              var pageUrl1 = video1.player.default;
+              var title1 = video1.title;
+              addToQueue({site: pageUrl1, title: title1, yt: true});
+              res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+
+              res.end();
+            }
+
+            var pageUrl = video.player.default;
+            console.log("Found:", title);
+            
+            addToQueue({site: pageUrl, title: title, yt: true});
+            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+            res.end();
+
+          } else { // No result
+            addToQueue({url: uri.query.q});
+            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+            res.end();
+          }
+        });
+      }
       break;
 
 
     case 'search':
+
       console.log("Youtube search:", uri.query.q);
-      var isQueue = uri.query.queue !== undefined;
-      if (!isQueue) {
-        isChangingSong = true;
-      }
+      isChangingSong = true;
+      
       youtube.feeds.videos( {q: uri.query.q}, function (result) {console.log
         if (result.items && result.items[0]) {
           var video = result.items[0];
@@ -459,40 +399,18 @@ var httpServer = http.createServer(function (req, res) {
           var title = video.title;
           var pageUrl = video.player.default;
           console.log("Found:", title);
-          if (isQueue) {
-            addToQueue({site: pageUrl, title: title, yt: true});
+
+          getYoutubeUrl(pageUrl, function (realUrl) {
+            addToQueue({site: pageUrl, url: realUrl, title: title});
             res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-
             res.end();
+          });
 
-
-
-          } else{
-            getYoutubeUrl(pageUrl, function (realUrl) {
-              omx.start(realUrl, function () {
-                setNowPlaying('<a href="'+pageUrl+'" target="_blank">'+title+'</a>');
-                res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-                res.end();
-                isChangingSong = false;
-              });
-            });
-
-          }
         } else { // No result
-          if (isQueue) {
-            addToQueue({url: uri.query.q});
-            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-            res.end();
-          } else {
-            omx.start(uri.query.q, function () {
-              setNowPlaying('<a href="'+uri.query.q+'" target="_blank">'+uri.query.q+'</a>');
-              res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-              res.end();
-              isChangingSong = false;
-            });
-          }
-
-        }
+          addToQueue({url: uri.query.q});
+          res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+          res.end();
+        } 
       });
       break;
 

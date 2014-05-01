@@ -1,73 +1,51 @@
 <!doctype html>
 <html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=320">
-	<title>OMX radio</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
-</head>
-<body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=320">
+    <title>OMX radio</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
 
-<h1>Raspberry Pi - omxradio</h1>
+    <h1>Raspberry Pi - omxradio</h1>
 
-<!--
-<form id="stationsForm">
-	<select id="stations">
-		<option value="">Select station</option>
-<option value="http://live.romanticfm.ro:8002/">Romantic</option>
-		<option value="http://http-live.sr.se/p1-mp3-192">SR P1</option>
-<option value="http://streaming206.radionomy.com:80/-AD-FM-AreaDanceFM">[ADFM]AreaDanceFM</option>
-	</select>
-	<button type="button" class="col2 left small" id="queueStationBtn">Queue</button>
-	<button class="col2 right small" id="playStationBtn">Play</button>
-</form>
-<br style="clear: both">
-<br>
--->
+    <form id="searchForm">
+      <input type="text" id="searchInput" placeholder="Seach Youtube/direct URL" required>
+      <button class="col2 left small" id="singleBtn">Add to Queue</button>
+      <button class="col2 right small" id="playlistBtn">Build Playlist</button>
+    </form>
+    <br style="clear: both">
+    <br>
 
-<form id="listQ">
-        <input type="text" id="searchList" placeholder="Insert playlist URL" required>
-        <button class="col1 right small" id="playList">Play Playlist</button>
-</form>
-<br style="clear: both">
+    <select id="audioOut" class="col3 left small">  
+      <option value="hdmi">hdmi</option>
+      <option value="local">local</option>
+    </select>
+    <button type="button" class="col3 right" id="volumeUpBtn">Volume +</button>
+    <br style="clear: both">
+    <button type="button" class="col3 right" id="volumeDownBtn">Volume -</button>
+    <br style="clear: both">
+    <button type="button" class="col3 left" id="backwardBtn">&lt;&lt;</button><button type="button" class="col3 center" id="playPauseBtn">Toggle playback</button><button type="button" class="col3 right" id="forwardBtn">&gt;&gt;</button>
+    <br style="clear: both">
+    <button type="button" id="stopBtn">Stop playback</button>
 
+    <br style="clear: both">
+    <br>
 
-<form id="searchForm">
-	<input type="text" id="searchInput" placeholder="Seach Youtube/direct URL" required>
-	<button type="button" class="col2 left small" id="queueBtn">Queue</button>
-	<button class="col2 right small" id="playBtn">Play</button>
-</form>
-<br style="clear: both">
-<br>
+    <h2 class="left" style="margin: 5px;">Queue</h2>
+    <button type="button" class="right small" id="playQueueBtn" style="width: auto; margin-bottom: 3px;">Start queue/next song</button>
+    <br style="clear: both">
+    <div id="queueDiv"></div>
 
-<select id="audioOut" class="col3 left small">  
-        <option value="hdmi">hdmi</option>
-        <option value="local">local</option>
-</select>
-<button type="button" class="col3 right" id="volumeUpBtn">Volume +</button>
-<br style="clear: both">
-<button type="button" class="col3 right" id="volumeDownBtn">Volume -</button>
-<br style="clear: both">
-<button type="button" class="col3 left" id="backwardBtn">&lt;&lt;</button><button type="button" class="col3 center" id="playPauseBtn">Toggle playback</button><button type="button" class="col3 right" id="forwardBtn">&gt;&gt;</button>
-<br style="clear: both">
-<button type="button" id="stopBtn">Stop playback</button>
+    <br>
+    <hr>
+    Created by <a href="http://djazz.mine.nu/">djazz</a> - Download <a href="https://github.com/daniel-j/omxradio">source here</a>.
+    <br><br><br>
 
-<br style="clear: both">
-<br>
+    <marquee id="nowPlaying" scrollamount="3"></marquee>
 
-<h2 class="left" style="margin: 5px;">Queue</h2>
-<button type="button" class="right small" id="playQueueBtn" style="width: auto; margin-bottom: 3px;">Start queue/next song</button>
-<br style="clear: both">
-<div id="queueDiv"></div>
+    <script src="main.js"></script>
 
-<br>
-<hr>
-Created by <a href="http://djazz.mine.nu/">djazz</a> - Download <a href="https://github.com/daniel-j/omxradio">source here</a>.
-<br><br><br>
-
-<marquee id="nowPlaying" scrollamount="3"></marquee>
-
-<script src="main.js"></script>
-
-</body>
+  </body>
 </html>
