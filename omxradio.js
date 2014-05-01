@@ -36,10 +36,12 @@ var queueItemCounter = 0;
 var isChangingSong = false;
 
 omx.onstop = function (wasKilled, stdout) {
+
   if (!wasKilled && !isChangingSong) {
     console.log("omxplayer stopped playback by itself");
 
     playFromQueue();
+
     if (queue.length === 0) {
       setNowPlaying("");
     }
@@ -54,6 +56,7 @@ function QueueItem(params) {
   this.site = params.site || params.url;
   this.title = params.title || this.site;
   this.id = params.id || queueItemCounter++;
+  this.yt = !!params.yt;
   this.html = this.toHTML();
 }
 QueueItem.prototype.toHTML = function () {
@@ -61,16 +64,30 @@ QueueItem.prototype.toHTML = function () {
 }
 
 function playFromQueue(cb) {
-  if (queue.length > 0) {
+
+  if (!isChangingSong && queue.length > 0) {
+  
     var item = removeFromQueue(0);
     isChangingSong = true;
 
-    console.log('playing '+item.title);
-    omx.start(item.url, function () {
-      setNowPlaying(item.toHTML());
-      if (cb) cb();
-      isChangingSong = false;
-    });
+    if (item.yt) {
+      console.log('getting youtube link..');
+      getYoutubeUrl(item.site, function (realUrl) {
+        console.log('playing '+item.title);
+        omx.start(realUrl, function () {
+          setNowPlaying(item.toHTML());
+          if (cb) cb();
+          isChangingSong = false;
+        });
+      });
+    } else {
+      console.log('playing '+item.title);
+      omx.start(item.url, function () {
+        setNowPlaying(item.toHTML());
+        if (cb) cb();
+        isChangingSong = false;
+      });
+    }
 
   } else {
     if (cb) cb();
@@ -91,6 +108,7 @@ function addToQueue(params) {
     sendToSSE(i, data);
   }
   if (queue.length == 1 && nowPlaying == '') {
+
     playFromQueue();
   }
 }
@@ -308,7 +326,6 @@ var httpServer = http.createServer(function (req, res) {
          (uri.query.q.indexOf("http://") == 0)) {
 
         console.log("List search:", uri.query.q);
-        isChangingSong = true;
         
         youtube.feeds.playlist(uri.query.q, function (result) {
           if (result.items && result.items[0])  {
@@ -348,8 +365,6 @@ var httpServer = http.createServer(function (req, res) {
 
         console.log("Building youtube playlist from keyword:", uri.query.q);
 
-        isChangingSong = true;
-
         youtube.feeds.videos( {q: uri.query.q}, function (result) {
 
           if (result.items && result.items[0])  {
@@ -359,7 +374,7 @@ var httpServer = http.createServer(function (req, res) {
             console.log("Video:", video);
             var title = video.title;
 
-            for (var i=0; i < Math.min(8,number); i++) {
+            for (var i=0; i < Math.min(7,number); i++) {
               var video1 = result.items[i];
               if(!video1 || !video1.player) continue;
               var pageUrl1 = video1.player.default;
@@ -390,7 +405,6 @@ var httpServer = http.createServer(function (req, res) {
     case 'search':
 
       console.log("Youtube search:", uri.query.q);
-      isChangingSong = true;
       
       youtube.feeds.videos( {q: uri.query.q}, function (result) {console.log
         if (result.items && result.items[0]) {
