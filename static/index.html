@@ -12,7 +12,7 @@
 
     <form id="searchForm">
       <input type="text" id="searchInput" placeholder="Seach Youtube/direct URL" required>
-      <button class="col2 left small" id="singleBtn">Add to Queue</button>
+      <button class="col2 left small" id="singleBtn">Play / Enqueue</button>
       <button class="col2 right small" id="playlistBtn">Build Playlist</button>
     </form>
     <br style="clear: both">
@@ -33,6 +33,10 @@
     <br style="clear: both">
     <br>
 
+    <h2 style="margin: 5px;">Now Playing</h2>
+    <div id="nowPlaying" scrollamount=3></div>
+    <br>
+
     <h2 class="left" style="margin: 5px;">Queue</h2>
     <button type="button" class="right small" id="playQueueBtn" style="width: auto; margin-bottom: 3px;">Start next song</button>
     <br style="clear: both">
@@ -40,10 +44,7 @@
 
     <br>
     <hr>
-    Created by <a href="http://djazz.mine.nu/">djazz</a> - Download <a href="https://github.com/daniel-j/omxradio">source here</a>.
-    <br><br><br>
-
-    <marquee id="nowPlaying" scrollamount="3"></marquee>
+    Created by <a href="http://djazz.mine.nu/">djazz</a> - Download <a href="https://github.com/marfl/omxradio">source here</a>.
 
     <script src="main.js"></script>
 

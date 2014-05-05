@@ -69,6 +69,13 @@ function playFromQueue(cb) {
   
     var item = removeFromQueue(0);
     isChangingSong = true;
+    
+    if(nowPlaying == '') {
+      setNowPlaying("Changing to: " + item.toHTML());
+
+    } else {
+      setNowPlaying(nowPlaying + "</br>Changing to: " + item.toHTML());
+    }
 
     if (item.yt) {
       console.log('getting youtube link..');
@@ -329,32 +336,24 @@ var httpServer = http.createServer(function (req, res) {
         
         youtube.feeds.playlist(uri.query.q, function (result) {
           if (result.items && result.items[0])  {
-            var video = result.items[0];
             var number = result.itemsPerPage;
-            console.log("Number:", number);
-            console.log("Video:", video);
-            var title = video.video.title;
-            for (var i=0; i < number; i++) {
-              var video1 = result.items[i];
-              if(!video1 || !video1.video.player) continue;
-              var pageUrl1 = video1.video.player.default;
-              var title1 = video1.video.title;
-              addToQueue({site: pageUrl1, title: title1, yt: true});
-              res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+            number = Math.min(8,number);
 
+            console.log("Items in playlist: ", number);
+
+            for (var i=0; i < number; i++) {
+              var video = result.items[i];
+              if(!video || !video.player) continue;
+              var title = video.title;
+              var pageUrl = video.player.default;
+              console.log("Found:", title);
+
+              addToQueue({site: pageUrl, title: title, yt: true});
+              res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
               res.end();
             }
 
-            var pageUrl = video.video.player.default;
-            console.log("Found:", title);
-              
-            addToQueue({site: pageUrl, title: title, yt: true});
-            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-
-            res.end();
-
           } else { // No result
-            addToQueue({url: uri.query.q});
             res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
             res.end();
           }
@@ -362,45 +361,37 @@ var httpServer = http.createServer(function (req, res) {
         break;
         
       } else {
+        //TODO: remove code duplication
 
         console.log("Building youtube playlist from keyword:", uri.query.q);
 
         youtube.feeds.videos( {q: uri.query.q}, function (result) {
 
           if (result.items && result.items[0])  {
-            var video = result.items[0];
             var number = result.itemsPerPage;
-            console.log("Number:", number);
-            console.log("Video:", video);
-            var title = video.title;
+            number = Math.min(8,number);
 
-            for (var i=0; i < Math.min(7,number); i++) {
-              var video1 = result.items[i];
-              if(!video1 || !video1.player) continue;
-              var pageUrl1 = video1.player.default;
-              var title1 = video1.title;
-              addToQueue({site: pageUrl1, title: title1, yt: true});
+            console.log("Items in playlist: ", number);
+
+            for (var i=0; i < number; i++) {
+              var video = result.items[i];
+              if(!video || !video.player) continue;
+              var title = video.title;
+              var pageUrl = video.player.default;
+              console.log("Found:", title);
+
+              addToQueue({site: pageUrl, title: title, yt: true});
               res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-
               res.end();
             }
-
-            var pageUrl = video.player.default;
-            console.log("Found:", title);
             
-            addToQueue({site: pageUrl, title: title, yt: true});
-            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-            res.end();
-
           } else { // No result
-            addToQueue({url: uri.query.q});
             res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
             res.end();
           }
         });
       }
       break;
-
 
     case 'search':
 
@@ -421,6 +412,7 @@ var httpServer = http.createServer(function (req, res) {
           });
 
         } else { // No result
+          // TODO: try playing via y-dl first
           addToQueue({url: uri.query.q});
           res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
           res.end();
@@ -474,15 +466,13 @@ var httpServer = http.createServer(function (req, res) {
     default:
       specialCommand = false;
       break;
-
   }
   if (specialCommand) {
     return;
   }
-
-
   httpGetFile(pathname, req, res);
 });
+
 httpServer.listen(PORT, function () {
   console.log("OMX radio on port "+PORT);
 });
