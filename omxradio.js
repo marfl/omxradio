@@ -182,7 +182,8 @@ function sendToSSE(i, data) {
 }
 
 function getYoutubeUrl(pageUrl, cb) {
-  var yt = child_process.spawn("youtube-dl", ["-f", "38/37/46/22/35/34/18/6/5/17/13", "-g", pageUrl]); // Pick highest available quality
+  //var yt = child_process.spawn("youtube-dl", ["-f", "38/37/46/22/35/34/18/6/5/17/13", "-g", pageUrl]); // Pick highest available quality
+  var yt = child_process.spawn("youtube-dl", ["-g", pageUrl]);
   var url = "";
   yt.stdout.on('data', function (data) {
     url += data.toString('utf8');
@@ -395,29 +396,42 @@ var httpServer = http.createServer(function (req, res) {
 
     case 'search':
 
-      console.log("Youtube search:", uri.query.q);
-      
-      youtube.feeds.videos( {q: uri.query.q}, function (result) {console.log
-        if (result.items && result.items[0]) {
-          var video = result.items[0];
+      if(((uri.query.q.indexOf("https://") == 0) ||
+          (uri.query.q.indexOf("http://") == 0)) &&
+          uri.query.q.indexOf("youtube") == -1) {
 
-          var title = video.title;
-          var pageUrl = video.player.default;
-          console.log("Found:", title);
+        console.log("Opening video link:", uri.query.q);
 
-          getYoutubeUrl(pageUrl, function (realUrl) {
-            addToQueue({site: pageUrl, url: realUrl, title: title});
-            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
-            res.end();
-          });
-
-        } else { // No result
-          // TODO: try playing via y-dl first
-          addToQueue({url: uri.query.q});
+        getYoutubeUrl(uri.query.q, function (realUrl) {
+          if(realUrl != '') {
+            addToQueue({site: uri.query.q, url: realUrl});
+          } else {
+            addToQueue({url: uri.query.q});
+          }
           res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
           res.end();
-        } 
-      });
+        });  
+      } else {
+        console.log("Youtube search:", uri.query.q);
+
+        youtube.feeds.videos( {q: uri.query.q}, function (result) {
+          if (result.items && result.items[0]) {
+            var video = result.items[0];
+
+            var title = video.title;
+            var pageUrl = video.player.default;
+            console.log("Found:", title);
+
+            addToQueue({site: pageUrl, title: title, yt: true});
+            res.writeHead(200, {'Content-Type':'text/plain;charset=utf-8'});
+            res.end();
+
+          } else { // No result
+            res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+            res.end();
+          }
+        });
+      }
       break;
 
     case 'events':
