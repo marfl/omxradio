@@ -190,10 +190,9 @@ function getYoutubeUrl(pageUrl, cb) {
   });
   yt.stdout.on('close', function () {
     yt.kill();
-    var realUrl = unescape(url).trim();
+    var realUrl = unescape(url.split("\n")[0]).trim();
 
     cb(realUrl);
-
   });
 }
 
