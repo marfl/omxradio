@@ -405,7 +405,7 @@ var httpServer = http.createServer(function (req, res) {
           if(realUrl != '') {
             addToQueue({site: uri.query.q, url: realUrl});
           } else {
-            addToQueue({url: uri.query.q});
+            addToQueue({site: uri.query.q, url: uri.query.q});
           }
           res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
           res.end();
