@@ -24,9 +24,12 @@ var queue = [];
 var queueChanged = false;
 var nowPlayingChanged = false;
 
+var audioOut = "hdmi";
+
 // For XHR requests
 var eventsData = {
   nowPlaying: nowPlaying,
+  audioOut: audioOut,
   queue: {
     list: queue
   }
@@ -176,7 +179,30 @@ function setNowPlaying(np) {
   }
 }
 
+function setAudioOut(out) {
+
+  omx.setAudioOut(out);
+
+  if (audioOut !== out) {
+
+    audioOut = out;
+    eventsData.audioOut = out;
+
+    var data = {
+      audioOut: audioOut
+    };
+
+    data = JSON.stringify(data);
+    for (var i=0; i < sseReq.length; i++) {
+      sendToSSE(i, data);
+    }
+  }
+}
+
 function sendToSSE(i, data) {
+
+  console.log("sending to SSE: "+data);
+
   sseRes[i].write("id: "+sseId[i]+"\n");
   sseRes[i].write("data: "+data+"\n\n");
 }
@@ -275,7 +301,7 @@ var httpServer = http.createServer(function (req, res) {
           break;
         case 'set_audio_out':
           console.log('set_audio_out='+uri.query.value);
-          omx.setAudioOut(uri.query.value);
+          setAudioOut(uri.query.value);
           res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
           res.end();
           break;

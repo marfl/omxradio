@@ -72,6 +72,10 @@ function setNowPlaying(np) {
   nowPlaying = np;
   console.log("Now playing:", np);
 }
+function setAudioOut(out) {
+  audioOut.value = out;
+  console.log("Audio Output:", out);
+}
 
 searchForm.addEventListener('submit', function (e) {
   e.preventDefault();
@@ -171,6 +175,9 @@ function handleEvents(data) {
 
   if (data.nowPlaying !== undefined) {
     setNowPlaying(data.nowPlaying);
+  }
+  if (data.audioOut !== undefined) {
+    setAudioOut(data.audioOut);
   }
   if (data.queue !== undefined) {
     if (data.queue.list !== undefined) {
