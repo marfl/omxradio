@@ -26,6 +26,8 @@ var forwardBtn   = document.getElementById('forwardBtn');
 var playPauseBtn = document.getElementById('playPauseBtn');
 
 var audioOut = document.getElementById('audioOut');
+var loopCB = document.getElementById('loopCB');
+
 var volumeUpBtn  = document.getElementById('volumeUpBtn');
 var volumeDownBtn  = document.getElementById('volumeDownBtn');
 
@@ -54,6 +56,8 @@ function setActive(active) {
   playPauseBtn.disabled = !active;
 
   audioOut.disabled = !active;
+  loopCB.disabled = !active;
+
   volumeUpBtn.disabled = !active;
   volumeDownBtn.disabled = !active;
 
@@ -75,6 +79,14 @@ function setNowPlaying(np) {
 function setAudioOut(out) {
   audioOut.value = out;
   console.log("Audio Output:", out);
+}
+function setLoopCB(l) {
+  if(l == false || l == "false") {
+    loopCB.checked = false;
+  } else {
+    loopCB.checked = true;
+  }
+  console.log("Looping:", l);
 }
 
 searchForm.addEventListener('submit', function (e) {
@@ -129,6 +141,18 @@ audioOut.addEventListener('change', function (e) {
   }
 }, false);
 
+loopCB.addEventListener('change', function (e) {
+  e.preventDefault();
+
+  if (isActive) {
+
+    setActive(false);
+    xhr('/omx/set_looping?value='+encodeURIComponent(loopCB.checked), function () {
+      setActive(true);
+    });
+  }
+}, false);
+
 function QueueItem(params, table) {
   this.url = params.url;
   this.site = params.site || params.url;
@@ -178,6 +202,9 @@ function handleEvents(data) {
   }
   if (data.audioOut !== undefined) {
     setAudioOut(data.audioOut);
+  }
+  if (data.looping !== undefined) {
+    setLoopCB(data.looping);
   }
   if (data.queue !== undefined) {
     if (data.queue.list !== undefined) {

@@ -25,11 +25,13 @@ var queueChanged = false;
 var nowPlayingChanged = false;
 
 var audioOut = "hdmi";
+var looping = false;
 
 // For XHR requests
 var eventsData = {
   nowPlaying: nowPlaying,
   audioOut: audioOut,
+  looping: looping,
   queue: {
     list: queue
   }
@@ -80,12 +82,14 @@ function playFromQueue(cb) {
       setNowPlaying(nowPlaying + "</br>Changing to: " + item.toHTML());
     }
 
-    if (item.yt) {
+    if (!item.url && item.yt) {
       console.log('getting youtube link..');
       getYoutubeUrl(item.site, function (realUrl) {
+        item.url = realUrl;
         console.log('playing '+item.title);
         omx.start(realUrl, function () {
           setNowPlaying(item.toHTML());
+          if (looping) addToQueue(item);
           if (cb) cb();
           isChangingSong = false;
         });
@@ -94,6 +98,7 @@ function playFromQueue(cb) {
       console.log('playing '+item.title);
       omx.start(item.url, function () {
         setNowPlaying(item.toHTML());
+        if (looping) addToQueue(item);
         if (cb) cb();
         isChangingSong = false;
       });
@@ -199,9 +204,27 @@ function setAudioOut(out) {
   }
 }
 
+function setLooping(l) {
+
+  if (looping !== l) {
+
+    looping = l;
+    eventsData.looping = l;
+
+    var data = {
+      looping: looping
+    };
+
+    data = JSON.stringify(data);
+    for (var i=0; i < sseReq.length; i++) {
+      sendToSSE(i, data);
+    }
+  }
+}
+
 function sendToSSE(i, data) {
 
-  console.log("sending to SSE: "+data);
+  //console.log("sending to SSE: "+data);
 
   sseRes[i].write("id: "+sseId[i]+"\n");
   sseRes[i].write("data: "+data+"\n\n");
@@ -305,7 +328,13 @@ var httpServer = http.createServer(function (req, res) {
           res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
           res.end();
           break;
-
+        case 'set_looping':
+          console.log('set_looping='+uri.query.value);
+          setLooping(uri.query.value);
+          res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+          res.end();
+          break;
+       
         default:
           notFound(res);
           break;
