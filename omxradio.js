@@ -207,6 +207,7 @@ var httpServer = http.createServer(function (req, res) {
 
   switch (pathlist[0]) {
 
+    /*
     case 'xbmc':
 
       console.log("xbmc");
@@ -219,6 +220,7 @@ var httpServer = http.createServer(function (req, res) {
         console.log(stdout); });
 
       break;
+    */
 
     case 'omx':
 
