@@ -206,6 +206,8 @@ function setAudioOut(out) {
 
 function setLooping(l) {
 
+  l = (l === 'true');
+
   if (looping !== l) {
 
     looping = l;
