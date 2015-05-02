@@ -1,10 +1,9 @@
 omxradio - A web interface for Raspberry Pi's omxplayer using node.js and youtube-dl.
 
-
-To use this you must install node.js (required modules: appjs, express,	mime, omxcontrol, youtube-dl, youtube-feed) and youtube-dl. Tested on node v0.8.12 and node 0.10.22:
+To use this you must install node.js (required modules: appjs, express,	mime, googleapis) and youtube-dl . Tested on node v0.10.24 and youtube-dl 2012.02.27:
   $ node omxradio
 
-IMPORTANT! on node 0.10.22 you need to use youtube-feeds version 1.0.3 (npm install youtube-feeds@1.0.3)
+IMPORTANT: Because of Youtube's new API (v3) you now need to provide your own API key in omxradio.js in order for this to work fully.
 
 Web interface shows up on http://hostname:7000/ where hostname is the name/ip address of the Raspberry Pi. It is optimized for Google Chrome and/on Android ICS/JB.
 
@@ -13,7 +12,7 @@ Features:
   * Play a file stored locally or from an URL
   * Play music (actually video if a monitor is connected) from Youtube.
   * Search on Youtube by keywords, video id or video url.
-  * Play youtube playlist (songs go to que)
+  * Play youtube playlist (songs go to queue); currently broken
   * Queue tracks!
   * Play/pause and stop current playing music.
 

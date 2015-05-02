@@ -1,5 +1,8 @@
 'use strict';
 
+// put your API key here
+var GOOGLE_API_KEY = '';
+
 process.stdout.write("Loading modules: http");var http = require('http');
 process.stdout.write(", url");var url  = require('url');
 process.stdout.write(", path");var path = require('path');
@@ -8,9 +11,13 @@ process.stdout.write(", mime");var mime = require('mime');
 process.stdout.write(", os");var os   = require('os');
 process.stdout.write(", zlib");var zlib = require('zlib');
 process.stdout.write(", omxcontrol");var omx = require('omxcontrol');
-process.stdout.write(", youtube-feeds");var youtube = require('youtube-feeds');
+process.stdout.write(", google");var google = require('googleapis');
 process.stdout.write(", child_process");var child_process = require('child_process');
 process.stdout.write(", DONE!\n");
+
+// init youtube API
+google.options ({ auth: GOOGLE_API_KEY });
+var youtube = google.youtube ('v3');
 
 var PORT = 7000;
 
@@ -393,6 +400,12 @@ var httpServer = http.createServer(function (req, res) {
 
         console.log("List search:", uri.query.q);
         
+        // FIXME
+        addToQueue({site: "https://www.youtube.com/watch?v=BROWqjuTM0g", title: "Playlist", yt: true});
+        res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+        res.end();
+
+        /*
         youtube.feeds.playlist(uri.query.q, function (result) {
           if (result.items && result.items[0])  {
             var number = result.itemsPerPage;
@@ -417,33 +430,39 @@ var httpServer = http.createServer(function (req, res) {
             res.end();
           }
         });
+        */
         break;
         
       } else {
-        //TODO: remove code duplication
-
         console.log("Building youtube playlist from keyword:", uri.query.q);
 
-        youtube.feeds.videos( {q: uri.query.q}, function (result) {
-
-          if (result.items && result.items[0])  {
-            var number = result.itemsPerPage;
-            number = Math.min(8,number);
-
-            console.log("Items in playlist: ", number);
-
-            for (var i=0; i < number; i++) {
-              var video = result.items[i];
-              if(!video || !video.player) continue;
-              var title = video.title;
-              var pageUrl = video.player.default;
-              console.log("Found:", title);
-
-              addToQueue({site: pageUrl, title: title, yt: true});
+        youtube.search.list (
+          {
+            part: 'snippet',
+            type: 'video',
+            q: uri.query.q,
+            maxResults: 12,
+            //videoEmbeddable: true
+          },
+          function (err, result) {
+            if (err) {
+              console.log(err);
               res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
               res.end();
-            }
-            
+            } else if (result.items && result.items[0])  {
+
+              result.items.forEach (function (item) {
+
+                var title = item.snippet.title || '';
+                var pageUrl = 'http://www.youtube.com/watch?v='+ item.id.videoId;
+
+                console.log("Found:", title);
+
+                addToQueue({site: pageUrl, title: title, yt: true});
+                res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+                res.end();
+              }
+            );          
           } else { // No result
             res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
             res.end();
@@ -456,7 +475,7 @@ var httpServer = http.createServer(function (req, res) {
 
       if(((uri.query.q.indexOf("https://") == 0) ||
           (uri.query.q.indexOf("http://") == 0)) &&
-          uri.query.q.indexOf("youtube") == -1) {
+          (GOOGLE_API_KEY=='' || uri.query.q.indexOf("youtube") == -1)) {
 
         console.log("Opening video link:", uri.query.q);
 
@@ -472,18 +491,33 @@ var httpServer = http.createServer(function (req, res) {
       } else {
         console.log("Youtube search:", uri.query.q);
 
-        youtube.feeds.videos( {q: uri.query.q}, function (result) {
-          if (result.items && result.items[0]) {
-            var video = result.items[0];
+        youtube.search.list (
+          {
+            part: 'snippet',
+            type: 'video',
+            q: uri.query.q,
+            maxResults: 1,
+            //videoEmbeddable: true
+          },
+          function (err, result) {
+            if (err) {
+              console.log(err);
+              res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+              res.end();
+            } else if (result.items && result.items[0])  {
+              
+              // TODO: make function from this / remove code duplication
+              var item = result.items[0];
 
-            var title = video.title;
-            var pageUrl = video.player.default;
-            console.log("Found:", title);
+              var title = item.snippet.title || '';
+              var pageUrl = 'http://www.youtube.com/watch?v='+ item.id.videoId;
 
-            addToQueue({site: pageUrl, title: title, yt: true});
-            res.writeHead(200, {'Content-Type':'text/plain;charset=utf-8'});
-            res.end();
+              console.log("Found:", title);
 
+              addToQueue({site: pageUrl, title: title, yt: true});
+              res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+              res.end();
+      
           } else { // No result
             res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
             res.end();
